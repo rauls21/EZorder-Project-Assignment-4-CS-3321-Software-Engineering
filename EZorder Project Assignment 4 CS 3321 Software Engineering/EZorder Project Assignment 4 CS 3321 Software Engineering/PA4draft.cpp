@@ -63,3 +63,18 @@ string positionToString(Position pos) {
   }
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////// End of Employee CLass
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Start of Employee Management
+class EmploymentManagement {
+private:
+  vector<Employee> employees;
+
+public:
+  void addEmployee(Employee emp) {
+    employees.push_back(emp);
+    cout << emp.getName() << " added to the system." << endl;
+  }
+
+  void removeEmplyee(int pin) {
+    for (auto& emp : employees) {
+    
