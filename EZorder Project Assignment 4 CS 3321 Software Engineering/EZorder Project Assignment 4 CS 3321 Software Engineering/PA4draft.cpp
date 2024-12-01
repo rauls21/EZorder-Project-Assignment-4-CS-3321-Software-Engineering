@@ -282,7 +282,8 @@ public:
             cin >> wage;
             
             dbWindow.addEmployee(name, position, pin, wage);
-            
+
+            return 0;
         }
     }
 
