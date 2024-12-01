@@ -386,13 +386,8 @@ int main() {
 
     // Ensure the input is a 4-digit number
     if (userPin >= 1000 && userPin <= 9999) {
-        if (loginWindow.verifyPin(userPin)) {
             loginWindow.login(userPin);
         }
-        else {
-            loginWindow.login(userPin);
-        }
-    }
     else if (userPin == 0000) {
         loginWindow.modCode(userPin);
     }
