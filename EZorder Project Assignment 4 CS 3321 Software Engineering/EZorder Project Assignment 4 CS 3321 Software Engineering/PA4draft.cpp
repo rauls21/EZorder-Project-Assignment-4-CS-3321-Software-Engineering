@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <map>
 #include <string>
@@ -137,11 +138,47 @@ public:
         }
     }
 
+    void addEmployeeToCSV(const string& name, const string& position, int pin, double wage) {
+        const string filename = "employees.csv";
+        ofstream outputFile("employees.csv", ios::app);
+
+        // Check if the file opened successfully
+        if (outputFile.is_open()) {
+            ifstream inFile("employees.csv", ios::ate);
+            if (inFile.tellg() == 0) { // File size is 0, so it is empty
+                outputFile << "Name,Position,Pin,Wage\n"; // Write header
+            }
+            inFile.close(); // Close the input stream
+        }
+
+        // Check if the file opened successfully
+        if (!outputFile.is_open()) {
+            cerr << "Error opening file!";
+        }
+
+        /* Check if the file is empty and write header if it is
+        if (outputFile.tellp() == 0) {
+            outputFile << "Name,Position,Pin,Wage\n";
+        }*/
+
+        // Append the employee's data in CSV format
+        outputFile << name << "," << position << "," << pin << "," << wage << endl;
+
+        // Close the file
+        outputFile.close();
+    }
+    
+
+
+
     // Add employee (admin only)
     void addEmployee(string name, string position, int pin, double wage) {
-        if (employees.find(name) == employees.end()) {
+        if (employees.find(name) == employees.end()) { // Store employee info. into CSV file
             employees[name] = Employee(name, position, pin, wage);
+
+
             cout << "Employee added: " << name << endl;
+            addEmployeeToCSV(name, position, pin, wage);
         }
         else {
             cout << "Employee already exists." << endl;
@@ -261,17 +298,17 @@ public:
         cout << "Enter Passcode: ";
         cin >> modPc;
 
-        if (modPc == "tj93mVvzbghM9wR") 
+        if (modPc == "tj93mVvzbghM9wR")
         { // The admin will be taken to the addEmployee function and adds the Managers Information like name, pin, wage, position then closes the system.
-           
+
             string name;
             string position;
             int pin;
             double wage;
-            
+
             cout << "What is the name of the employee?" << endl;
             cin >> name;
-                
+
             cout << "What will be the position?" << endl;
             cin >> position;
 
@@ -280,7 +317,7 @@ public:
 
             cout << "What is their starting wage?" << endl;
             cin >> wage;
-            
+
             dbWindow.addEmployee(name, position, pin, wage);
 
             return 0;
@@ -305,7 +342,7 @@ public:
 int main() {
     DatabaseWindow dbWindow;
     LoginWindow loginWindow(dbWindow);
-    PaymentWindow paymentWindow;
+    //PaymentWindow paymentWindow;
 
     ////////////////////////////////////////////////////////////////////// Start of Login
     int userPin;
