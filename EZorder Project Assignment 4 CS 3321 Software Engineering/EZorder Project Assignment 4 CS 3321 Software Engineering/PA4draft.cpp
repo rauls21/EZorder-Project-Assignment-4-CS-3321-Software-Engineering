@@ -168,7 +168,7 @@ public:
         // Close the file
         outputFile.close();
     }
-    
+
 
 
 
@@ -281,18 +281,20 @@ private:
 
 public:
     LoginWindow(DatabaseWindow& db) : dbWindow(db) {}
+    
+        int login(int pin) {
 
-    int login(int pin) {
-        if (verifyPin(pin)) {
-            cout << "Login successful.\n";
-            return true;
+                if (verifyPin(pin)) {
+                    cout << "Login successful.\n";
+                    clockInOutDisplay();
+                }
+                else {
+                    cout << "Invalid credentials.\n";
+                    return false;
+                }
+           
         }
-        else {
-            cout << "Invalid credentials.\n";
-            return false;
-        }
-    }
-
+ 
     int modCode(int pin) {
         string modPc;
 
@@ -362,14 +364,65 @@ public:
         return false; // Pin not found
     }
 
-    void clockIn() {
-        cout << "Clocking in...\n";
-    }
 
-    void clockOut() {
-        cout << "Clocking out...\n";
+    void clockInOutDisplay() {
+        int navigate;
+        cout << "1. Clock in\n";
+        cout << "2. Clock out\n";
+        cin >> navigate;
+        if (navigate == 1) {
+            cout << "Clocking in...\n";
+           // userInterface();
+        }
+        else {
+            cout << "Clocking out...\n";
+        }
+       /* void clockIn() {
+            cout << "Clocking in...\n";
+        }
+        void clockIn() {
+            cout << "Clocking in...\n";
+        }*/
+        return;
     }
 };
+
+void userInterface() {
+    int navigate;
+    cout << "1. Table\n";
+    cout << "2. Orders\n";
+    cout << "3. Transfer\n";
+    cout << "4. Calculate\n";
+    cout << "5. Close Order\n";
+    cout << "6. Admin Edit\n";
+    cout << "7. Logout\n";
+    cin >> navigate;
+
+    if (navigate == 1) {
+        cout << "1";
+    }
+    else if (navigate == 2) {
+        cout << "2";
+    }
+    else if (navigate == 3) {
+        cout << "3";
+    }
+    else if (navigate == 4) {
+        cout << "4";
+    }
+    else if (navigate == 5) {
+        cout << "5";
+    }
+    else if (navigate == 6) {
+        cout << "6";
+    }
+    else if (navigate == 7) {
+        cout << "7";
+    }
+    else {
+        return;
+    }
+}
 
 // Main function to simulate the restaurant management system
 int main() {
@@ -387,7 +440,7 @@ int main() {
     // Ensure the input is a 4-digit number
     if (userPin >= 1000 && userPin <= 9999) {
             loginWindow.login(userPin);
-        }
+    }
     else if (userPin == 0000) {
         loginWindow.modCode(userPin);
     }
@@ -419,8 +472,8 @@ int main() {
     }*/
 
     dbWindow.displayEmployees();
-    dbWindow.displaySalesReport();
-    dbWindow.calculateWages();
+   //dbWindow.displaySalesReport();
+   //dbWindow.calculateWages();
 
     return 0;
 }
