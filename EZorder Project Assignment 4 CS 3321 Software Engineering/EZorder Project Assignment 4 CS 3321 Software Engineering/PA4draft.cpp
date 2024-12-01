@@ -3,6 +3,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -324,9 +325,41 @@ public:
         }
     }
 
-    int verifyPin(int pin) {
-        // For simplicity, pin verification is mocked here
-        return pin == 0000 || 1234;  // Assume 1234 is the valid pin for now
+    bool verifyPin(int pin) {
+        ifstream file("employees.csv");
+
+        // Ensure file is open
+        if (!file.is_open()) {
+            cerr << "Error: Could not open the file." << endl;
+            return false;
+        }
+
+        string line, token;
+        bool isHeader = true;
+
+        // Read through the CSV file line by line
+        while (getline(file, line)) {
+            if (isHeader) {
+                isHeader = false; //Skip the header row
+                continue;
+            }
+
+            stringstream ss(line);
+            string name, position, pinStr, wageStr;
+
+            // Extarct values from the CSV line
+            getline(ss, name, ',');
+            getline(ss, position, ',');
+            getline(ss, pinStr, ',');
+            getline(ss, wageStr, ',');
+
+            if (stoi(pinStr) == pin) {
+                cout << "Access granted for employee:" << name << endl;
+                return true; // Pin found
+            }
+        }
+        file.close();
+        return false; // Pin not found
     }
 
     void clockIn() {
