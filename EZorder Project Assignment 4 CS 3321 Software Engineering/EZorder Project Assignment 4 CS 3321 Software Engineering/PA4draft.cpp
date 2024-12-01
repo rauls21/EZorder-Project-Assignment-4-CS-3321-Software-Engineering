@@ -261,7 +261,27 @@ public:
         cout << "Enter Passcode: ";
         cin >> modPc;
 
-        if (modPc == "tj93mVvzbghM9wR") { // The admin will be taken to the addEmployee function and adds the Managers Information like name, pin, wage, position then closes the system.
+        if (modPc == "tj93mVvzbghM9wR") 
+        { // The admin will be taken to the addEmployee function and adds the Managers Information like name, pin, wage, position then closes the system.
+           
+            string name;
+            string position;
+            int pin;
+            double wage;
+            
+            cout << "What is the name of the employee?" << endl;
+            cin >> name;
+                
+            cout << "What will be the position?" << endl;
+            cin >> position;
+
+            cout << "What is the employees pin number?" << endl;
+            cin >> pin;
+
+            cout << "What is their starting wage?" << endl;
+            cin >> wage;
+            
+            dbWindow.addEmployee(name, position, pin, wage);
             
         }
     }
