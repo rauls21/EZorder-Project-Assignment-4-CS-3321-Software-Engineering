@@ -5,7 +5,7 @@
 
 using namespace std;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////// Employee class for managing individual employee details
+// Employee class for managing individual employee details
 class Employee {
 public:
     string name;
@@ -36,9 +36,8 @@ public:
             << ", Tips: $" << tips << endl;
     }
 };
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// End of Employee Class
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Floor class for managing the floor layout
+// Floor class for managing the floor layout
 class Table {
 public:
     int tableNumber;
@@ -72,9 +71,8 @@ public:
             << ", Order Total: $" << orderTotal << ", Party Size: " << partySize << endl;
     }
 };
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// End of Floor Class
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Order management
+// Order management
 class Order {
 public:
     vector<string> items;
@@ -95,9 +93,8 @@ public:
         cout << "Total: $" << totalCost << endl;
     }
 };
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// End of Order Class
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Payment Window class
+// Payment Window class
 class PaymentWindow {
 public:
     void displayCheck(const Order& order) {
@@ -125,9 +122,8 @@ public:
         cout << "Item voided/discounted.\n";
     }
 };
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// End of Payment Class
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Database Window class for managing employees, sales, and payroll
+// Database Window class for managing employees, sales, and payroll
 class DatabaseWindow {
 private:
     map<string, Employee> employees;
@@ -238,9 +234,8 @@ public:
         }
     }
 };
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// End of Database Window Class
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Login Window class
+// Login Window class
 class LoginWindow {
 private:
     DatabaseWindow& dbWindow;
@@ -249,7 +244,7 @@ private:
 public:
     LoginWindow(DatabaseWindow& db) : dbWindow(db) {}
 
-    bool login(int pin) {
+    int login(int pin) {
         if (verifyPin(pin)) {
             cout << "Login successful.\n";
             return true;
@@ -260,9 +255,20 @@ public:
         }
     }
 
-    bool verifyPin(int pin) {
+    int modCode(int pin) {
+        string modPc;
+
+        cout << "Enter Passcode: ";
+        cin >> modPc;
+
+        if (modPc == "tj93mVvzbghM9wR") { // The admin will be taken to the addEmployee function and adds the Managers Information like name, pin, wage, position then closes the system.
+            
+        }
+    }
+
+    int verifyPin(int pin) {
         // For simplicity, pin verification is mocked here
-        return pin == 1234;  // Assume 1234 is the valid pin for now
+        return pin == 0000 || 1234;  // Assume 1234 is the valid pin for now
     }
 
     void clockIn() {
@@ -273,19 +279,44 @@ public:
         cout << "Clocking out...\n";
     }
 };
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// End of Login Window Class
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// Main function to simulate the restaurant management system
+// Main function to simulate the restaurant management system
 int main() {
     DatabaseWindow dbWindow;
     LoginWindow loginWindow(dbWindow);
     PaymentWindow paymentWindow;
 
-    // Simulating system operations
-    dbWindow.addEmployee("John", "Server", 1234, 15.50);
-    dbWindow.addEmployee("Alice", "Chef", 5678, 20.00);
+    ////////////////////////////////////////////////////////////////////// Start of Login
+    int userPin;
 
-    if (loginWindow.login(1234)) {
+    // Prompt user to enter a 4-digit PIN
+    cout << "Enter your 4-digit PIN: ";
+    cin >> userPin;
+
+    // Ensure the input is a 4-digit number
+    if (userPin >= 1000 && userPin <= 9999) {
+        if (loginWindow.verifyPin(userPin)) {
+            loginWindow.login(userPin);
+        }
+        else {
+            loginWindow.login(userPin);
+        }
+    }
+    else if (userPin == 0000) {
+        loginWindow.modCode(userPin);
+    }
+    else {
+        cout << "Invalid input" << endl;
+        return 0;
+    }
+    ////////////////////////////////////////////////////////////////////// End of Login
+
+
+    // Simulating system operations
+    //dbWindow.addEmployee("John", "Server", 1234, 15.50);
+    //dbWindow.addEmployee("Alice", "Chef", 5678, 20.00);
+
+    /*if (loginWindow.login(1234)) {
         dbWindow.occupyTable(1, "John", 4);
         dbWindow.displayFloorLayout();
 
@@ -299,7 +330,7 @@ int main() {
         paymentWindow.displayCheck(order);
         paymentWindow.addTips(5.00);
         paymentWindow.printCheck();
-    }
+    }*/
 
     dbWindow.displayEmployees();
     dbWindow.displaySalesReport();
@@ -307,4 +338,3 @@ int main() {
 
     return 0;
 }
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// End of Main Function
