@@ -7,43 +7,6 @@
 
 using namespace std;
 
-void userInterface() {
-    int navigate;
-    cout << "1. Table\n";
-    cout << "2. Orders\n";
-    cout << "3. Transfer\n";
-    cout << "4. Calculate\n";
-    cout << "5. Close Order\n";
-    cout << "6. Admin Edit\n";
-    cout << "7. Logout\n";
-    cin >> navigate;
-
-    if (navigate == 1) {
-        cout << "1";
-    }
-    else if (navigate == 2) {
-        cout << "2";
-    }
-    else if (navigate == 3) {
-        cout << "3";
-    }
-    else if (navigate == 4) {
-        cout << "4";
-    }
-    else if (navigate == 5) {
-        cout << "5";
-    }
-    else if (navigate == 6) {
-        cout << "6";
-    }
-    else if (navigate == 7) {
-        cout << "7";
-    }
-    else {
-        return;
-    }
-}
-
 // Employee class for managing individual employee details
 class Employee {
 public:
@@ -400,7 +363,7 @@ public:
             user.positionPrivilege(position);
             if (stoi(pinStr) == pin) {
                 cout << "Access granted for employee:" << name << endl;
-                return true; 
+                return true;
             }
 
         }
