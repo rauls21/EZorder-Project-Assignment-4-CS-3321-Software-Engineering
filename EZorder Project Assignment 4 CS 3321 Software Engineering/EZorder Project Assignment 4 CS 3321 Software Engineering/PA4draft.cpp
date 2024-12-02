@@ -175,6 +175,64 @@ public:
         cout << "Menu items added to the CSV file successfully!" << endl;
     }
 
+    bool removeMenuItem(string name) {
+        ifstream inputFile("menu.csv");
+        ofstream tempFile("tempfile.csv");
+        string line;
+
+        //Ensure the file is open
+        if (!inputFile.is_open()) {
+            cerr << "Error: Could not open the file for reading." << endl;
+            return false;
+        }
+
+
+        //Ensure the temporary file is open
+        if (!tempFile.is_open()) {
+            cerr << "Error: Could not open the temporary file for writing." << endl;
+            return false;
+        }
+
+        bool found = false;
+
+        //Read each line from the original file
+        while (getline(inputFile, line)) {
+            stringstream ss(line);
+            string item, price;
+
+            //Extract values from CSV line
+
+            getline(ss, item, ',');
+            getline(ss, price, ',');
+
+
+            //If the name does not match the item to be removed, write the line into temp file
+            if (item != name) {
+                tempFile << line << endl; //Write the original line to the temp file
+            }
+            else {
+                found = true; //Mark that we found the item
+            }
+        }
+
+        //Close files
+        inputFile.close();
+        tempFile.close();
+
+        //If the item was found and removed, replace the original file with temp file
+        if (found) {
+            remove("menu.csv"); //delete original file
+            rename("tempfile.csv", "menu.csv"); //rename temp file to original file
+            cout << "Menu item " << name << " removed successfully." << endl;
+            return true;
+        }
+        else {
+            remove("tempfile.csv"); //no menu item found, so remove temp file
+            cout << "Menu item " << name << " not found." << endl;
+            return false;
+        }
+    }
+
     void addEmployeeToCSV(const string& name, const string& position, int pin, double wage) {
         const string filename = "employees.csv";
         ofstream outputFile("employees.csv", ios::app);
@@ -714,6 +772,7 @@ public:
         double price;
         char choice;
 
+        string name;
 
         cout << "1. Add New Item\n";
         cout << "2. Remove Item\n";
@@ -748,7 +807,15 @@ public:
             managerInterface();
             break;
         case 2:
-            cout << "Remove Item\n";
+            cout << "Directing to Remove Item...\n";
+
+            cout << "Enter the name of the menu item to remove: " << endl;
+            cin >> name;
+
+            dbWindow.removeMenuItem(name);
+
+            cout << "Directing to Table View...\n";
+            managerInterface();
             break;
         case 3:
             cout << "Edit Price\n";
