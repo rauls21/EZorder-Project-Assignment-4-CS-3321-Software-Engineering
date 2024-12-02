@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -98,6 +99,99 @@ public:
         }
         cout << "Total: $" << totalCost << endl;
     }
+
+    void createOrderCSV(int orderNum) {
+        const string menuFile = "menu.csv";
+
+
+        map<string, double> menu = loadMenu(menuFile);
+        if (menu.empty()) {
+            cerr << "Error: Menu is empty or could not be loaded." << endl;
+            return;
+        }
+
+        string menuItem;
+        double price = 0.0;
+
+        //Create file name with orderNum
+        string orderFile = "Order_" + to_string(orderNum) + ".csv";
+
+        //Create & Open To-Go File
+        ofstream csvFile(orderFile, ios::app);
+
+        //Check if file opened successfully
+        if (csvFile.is_open()) {
+            ifstream inFile(orderFile, ios::ate);
+            if (inFile.tellg() == 0) {
+                //Write header and initial details
+                csvFile << "Menu Item, Price\n";
+            }
+            inFile.close();
+        }
+
+        //If file did not open
+        if (!csvFile.is_open()) {
+            cerr << "Error opening file!";
+        }
+
+        cin.ignore();
+        while (true) {
+            cout << "Enter Menu Item (type 'done' to exit): ";
+            getline(cin, menuItem);
+
+            if (menuItem == "done") {
+                break;
+            }
+
+            //Find the price of the menu item
+            auto it = menu.find(menuItem);
+            if (it != menu.end()) {
+                price = it->second;
+                
+                //Append the data to the file
+                csvFile << menuItem << "," << price << endl;
+                cout << menuItem << " addded to order.\n";
+            }
+            else {
+                cerr << "Error: Menu item not found." << endl;
+            }
+        }
+
+        //Close File
+        csvFile.close();
+
+    }
+
+    map<string, double> loadMenu(const string& menuFile) {
+        map<string, double> menu;
+        ifstream menuStream(menuFile);
+
+        if (!menuStream.is_open()) {
+            cerr << "Error: Could not open menu.csv" << endl;
+            return menu;
+        }
+
+        string line;
+        bool isFirstLine = true;
+        while (getline(menuStream, line)) {
+            if (isFirstLine) {
+                isFirstLine = false;
+                continue; // Skip header
+            }
+
+            size_t commaPos = line.find(',');
+            if (commaPos != string::npos) {
+                string menuItem = line.substr(0, commaPos);
+                double price = stod(line.substr(commaPos + 1));
+                menu[menuItem] = price;
+            }
+        }
+
+        menuStream.close();
+        return menu;
+    }
+
+
 };
 
 // Payment Window class
@@ -141,6 +235,38 @@ public:
         for (int i = 1; i <= 10; ++i) {
             tables.emplace_back(i); // Initialize 10 tables for the restaurant
         }
+    }
+
+    void displayMenu() {
+        ifstream menu("menu.csv");
+        if (!menu.is_open()) {
+            cerr << "Error: Could not open menu file";
+            return;
+        }
+
+        string line;
+        cout << left << setw(15) << "Menu Item" << setw(10) << "Price" << endl;
+        cout << "----------------------" << endl;
+
+        //skip header
+        bool isFirstLine = true;
+        while (getline(menu, line)) {
+            if (isFirstLine) {
+                isFirstLine = false;
+                continue;
+            }
+
+            size_t commaPos = line.find(',');
+            if (commaPos != string::npos) {
+                string menuItem = line.substr(0, commaPos);
+                string price = line.substr(commaPos + 1);
+                cout << left << setw(15) << menuItem << setw(10) << price << endl;
+            }
+        }
+        
+        menu.close();
+        cout << endl;
+
     }
 
     void appendToMenuCSV(const string& filename, const vector<string>& menuItems, const vector<double>& prices) {
@@ -578,6 +704,7 @@ private:
     DatabaseWindow& dbWindow;
     map<int, string> loggedInUsers;
     Employee user;
+    Order createOrder;
 
 public:
     LoginWindow(DatabaseWindow& db) : dbWindow(db) {}
@@ -693,7 +820,28 @@ public:
 
     void toGoOrder() {
         int navigateToGo;
-        cout << "List of To Go Orders: ";
+        cout << "1. View To-Go Orders\n";
+        cout << "2. Close Out\n";
+        cout << "3. Back\n";
+        cin >> navigateToGo;
+
+        switch (navigateToGo) {
+        case 1:
+            cout << "print list of to-go orders\n";
+            break;
+        case 2:
+            cout << "Directing to Close out...\n";
+            break;
+        case 3:
+            cout << "Directing back to Table View...\n";
+            serverInterface();
+            break;
+        default:
+            cout << "Invalid Input\n";
+            toGoOrder();
+            break;
+        }
+       
     }
 
     void orderView() {
@@ -719,6 +867,7 @@ public:
 
     void newOrder() {
         int navigateNewOrder;
+        int orderNum;
         cout << "1. New To-Go Order\n";
         cout << "2. New Table Order\n";
         cout << "3. Back\n";
@@ -726,10 +875,40 @@ public:
 
         switch (navigateNewOrder) {
         case 1:
-            cout << "To-Go Order";
+            cout << "Enter Order Number: ";
+            cin >> orderNum;
+
+            dbWindow.displayMenu();
+
+            createOrder.createOrderCSV(orderNum);
+
+            if (user.position == "Manager") {
+                cout << "Directing to Table View...\n";
+                managerInterface();
+            }
+
+            else {
+                cout << "Directing to table View...\n";
+                serverInterface();
+            }
             break;
         case 2:
-            cout << "Table Order";
+            cout << "Enter Order Number: ";
+            cin >> orderNum;
+
+            dbWindow.displayMenu();
+
+            createOrder.createOrderCSV(orderNum);
+            
+            if (user.position == "Manager") {
+                cout << "Directing to Table View...\n";
+                managerInterface();
+            }
+
+            else {
+                cout << "Directing to table View...\n";
+                serverInterface();
+            }
             break;
         case 3:
             cout << "Directing back to Table View...\n";
@@ -748,6 +927,7 @@ public:
         cout << "1. New Order\n";
         cout << "2. View Current Order\n";
         cout << "3. View To-Go Orders\n";
+        cout << "4. Logout\n";
         cin >> navigateUserInterface;
 
         switch (navigateUserInterface) {
@@ -762,6 +942,10 @@ public:
         case 3:
             cout << "Directing to To-Go Orders...\n";
             toGoOrder();
+            break;
+        case 4:
+            cout << "Logging out...\n";
+            return;
             break;
         default:
             cout << "Invalid Input\n";
@@ -861,7 +1045,10 @@ public:
 
         switch (editMenuNav) {
         case 1:
-            cout << "Enter menu items and their prices. Type 'n' when you are done.\n";
+            cout << "Current Menu:" << endl;
+            dbWindow.displayMenu();
+
+            cout << "Enter the menu item and price you wish to add. Type 'n' when you are done.\n";
 
             do {
                 cout << "Enter menu item: ";
@@ -888,8 +1075,13 @@ public:
         case 2:
             cout << "Directing to Remove Item...\n";
 
+            cout << "Current Menu:\n";
+            
+            dbWindow.displayMenu();
+
             cout << "Enter the name of the menu item to remove: " << endl;
-            cin >> item;
+            cin.ignore();
+            getline(cin, item);
 
             dbWindow.removeMenuItem(item);
 
@@ -899,8 +1091,13 @@ public:
         case 3:
             cout << "Directing to Edit Price...\n";
 
+            cout << "Current Menu:\n";
+
+            dbWindow.displayMenu();
+
             cout << "What is the name of the item you want to edit?" << endl;
-            cin >> item;
+            cin.ignore();
+            getline(cin, item);
 
             dbWindow.editMenu(item);
 
@@ -931,15 +1128,15 @@ public:
         cin >> navigate;
 
         switch (navigate) {
-        case 1:            //Table
+        case 1:          
             cout << "Directing to Edit Menu...\n";
             editMenuInterface();
             break;
-        case 2://Orders
+        case 2:
             cout << "Directing to Edit Employee...\n";
             editEmpInterface();
             break;
-        case 3://Transfer
+        case 3:
             cout << "3";
             break;
         case 4:
@@ -949,7 +1146,7 @@ public:
         case 5:
             cout << "5";
             break;
-        case 6:            //Admin edit
+        case 6:
             cout << "6";
             break;
         case 7:
