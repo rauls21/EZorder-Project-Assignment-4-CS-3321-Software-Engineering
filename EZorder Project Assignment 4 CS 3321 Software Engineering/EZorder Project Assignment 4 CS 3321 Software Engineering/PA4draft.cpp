@@ -718,6 +718,7 @@ public:
         cout << "1. Add New Item\n";
         cout << "2. Remove Item\n";
         cout << "3. Edit Price\n";
+        cout << "4. Back\n";
         cin >> editMenuNav;
 
         switch (editMenuNav) {
@@ -751,6 +752,15 @@ public:
             break;
         case 3:
             cout << "Edit Price\n";
+            break;
+        case 4:
+            cout << "Directing back to Table View...\n";
+            managerInterface();
+            break;
+        default:
+            cout << "Invalid Input\n";
+            editMenuInterface();
+            break;
         }
     }
 
