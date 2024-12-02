@@ -143,55 +143,36 @@ public:
         }
     }
 
-    void AddToMenuCSV() {
-        vector<string> menuItems;
-        vector<double> prices;
-        string item;
-        double price;
-        char choice;
-
-       /* do {
-            cout << "Enter Menu Item: ";
-            cin.ignore();
-            getline(cin, item);
-
-            cout << "Enter price: ";
-            cin >> price;
-
-            menuItems.push_back(item);
-            prices.push_back(price);
-
-            cout << "Do you want to add another item? (y/n): ";
-            cin >> choice;
-        } while (choice == 'y' || choice == 'Y');
-
+    void appendToMenuCSV(const string& filename, const vector<string>& menuItems, const vector<double>& prices) {
         if (menuItems.size() != prices.size()) {
             cerr << "Error: Menu items and prices must have the same number of entries." << endl;
             return;
-        }*/
-
-        ofstream menuFile("menu.csv", ios::app);
-
-        if (menuFile.is_open()) {
-            ifstream inFile("menu.csv", ios::ate);
-            if (inFile.tellg() == 0) {
-                menuFile << "Menu Item, Price\n";
-            }
-            inFile.close();
         }
 
-        if (!menuFile.is_open()) {
+        // Check if the file exists and has content
+        ifstream checkFile(filename);
+        bool fileIsNew = !checkFile.is_open() || checkFile.peek() == ifstream::traits_type::eof();
+        checkFile.close();
+
+        // Open the file in append mode
+        ofstream file(filename, ios::app);
+        if (!file.is_open()) {
             cerr << "Error: Could not open file." << endl;
             return;
         }
 
-        for (size_t i = 0; i < menuItems.size(); i++) {
-            menuFile << menuItems[i] << "," << prices[i] << "\n";
+        // Write the header if the file is new or empty
+        if (fileIsNew) {
+            file << "Menu Item,Price\n";
         }
 
-        menuFile.close();
-        cout << "Menu Updated" << endl;
-        return;
+        // Write each menu item and its price
+        for (size_t i = 0; i < menuItems.size(); ++i) {
+            file << menuItems[i] << "," << prices[i] << "\n";
+        }
+
+        file.close();
+        cout << "Menu items added to the CSV file successfully!" << endl;
     }
 
     void addEmployeeToCSV(const string& name, const string& position, int pin, double wage) {
@@ -695,7 +676,7 @@ public:
             cin >> wage;
 
             dbWindow.addEmployee(name, position, pin, wage);
-            
+
             cout << "Directing to Table View...\n";
             managerInterface();
             break;
@@ -726,26 +707,32 @@ public:
 
     void editMenuInterface() {
         int editMenuNav;
+        vector<string> menuItems;
+        vector<double> prices;
+
         string item;
-        double prices;
+        double price;
+        char choice;
 
 
         cout << "1. Add New Item\n";
         cout << "2. Remove Item\n";
         cout << "3. Edit Price\n";
+        cin >> editMenuNav;
 
         switch (editMenuNav) {
         case 1:
-            cout << "Directign to Add New Item...\n";
-            
+            cout << "Enter menu items and their prices. Type 'n' when you are done.\n";
+
             do {
-                cout << "Enter Menu Item: ";
-                cin.ignore();
+                cout << "Enter menu item: ";
+                cin.ignore(); // To clear any leftover input in the stream
                 getline(cin, item);
 
                 cout << "Enter price: ";
                 cin >> price;
 
+                // Add to vectors
                 menuItems.push_back(item);
                 prices.push_back(price);
 
@@ -753,11 +740,17 @@ public:
                 cin >> choice;
             } while (choice == 'y' || choice == 'Y');
 
-            if (menuItems.size() != prices.size()) {
-                cerr << "Error: Menu items and prices must have the same number of entries." << endl;
-                return;
-            }
+            // Append to the CSV file
+            dbWindow.appendToMenuCSV("menu.csv", menuItems, prices);
 
+            cout << "Directing back to Table View...\n";
+            managerInterface();
+            break;
+        case 2:
+            cout << "Remove Item\n";
+            break;
+        case 3:
+            cout << "Edit Price\n";
         }
     }
 
