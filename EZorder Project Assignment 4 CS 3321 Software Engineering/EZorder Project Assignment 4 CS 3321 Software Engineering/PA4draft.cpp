@@ -233,6 +233,7 @@ public:
         }
     }
 
+
     void addEmployeeToCSV(const string& name, const string& position, int pin, double wage) {
         const string filename = "employees.csv";
         ofstream outputFile("employees.csv", ios::app);
@@ -343,6 +344,85 @@ public:
         }
         else {
             cout << "Employee not found." << endl;
+        }
+    }
+
+    bool editMenu(string item) {
+        ifstream inputFile("menu.csv");
+        ofstream tempFile("temp.csv");
+        string line;
+
+        // Ensure the input file is open
+        if (!inputFile.is_open()) {
+            cerr << "Error: Could not open the file for reading." << endl;
+            return false;
+        }
+
+        // Ensure the temporary file is open
+        if (!tempFile.is_open()) {
+            cerr << "Error: Could not open the temporary file for writing." << endl;
+            return false;
+        }
+
+        bool found = false;
+        double newPrice;
+
+        // Read each line from the original file
+        while (getline(inputFile, line)) {
+            stringstream ss(line);
+            string itemF, priceStr;
+
+            // Extract values from the CSV line
+            getline(ss, itemF, ',');
+            getline(ss, priceStr, ',');
+
+            // If the name and pin match, prompt for new values
+            if (itemF == item) {
+                found = true;
+
+                cout << "1. Change Price\n";
+                cout << "2. Back\n";
+                int editNav;
+                cin >> editNav;
+
+                switch (editNav) {
+                case 1:
+                    // Get new position
+                    cout << "Enter new price for " << item << ": ";
+                    cin >> newPrice;
+                    tempFile << itemF << "," << newPrice << endl;
+                    break;
+                case 2:
+                    cout << "Returning to Edit Menu...\n";
+                    tempFile << line << endl;  // Write the original line if no valid choice is made
+                    break;
+                default:
+                    cout << "Invalid choice. No changes made." << endl;
+                    tempFile << line << endl;  // Write the original line if no valid choice is made
+                    break;
+                }
+            }
+            else {
+                // Write the original data to the temp file
+                tempFile << line << endl;
+            }
+        }
+
+        // Close the files
+        inputFile.close();
+        tempFile.close();
+
+        // If the item was found and updated, replace the original file with the temp file
+        if (found) {
+            remove("menu.csv");         // Delete the original file
+            rename("temp.csv", "menu.csv");  // Rename temp file to original file
+            cout << "Price on " << item << " has been saved." << endl;
+            return true;
+        }
+        else {
+            remove("temp.csv");  // No item found, so remove temp file
+            cout << "Item " << item << " not found or pin did not match." << endl;
+            return false;
         }
     }
 
@@ -772,7 +852,6 @@ public:
         double price;
         char choice;
 
-        string name;
 
         cout << "1. Add New Item\n";
         cout << "2. Remove Item\n";
@@ -810,15 +889,23 @@ public:
             cout << "Directing to Remove Item...\n";
 
             cout << "Enter the name of the menu item to remove: " << endl;
-            cin >> name;
+            cin >> item;
 
-            dbWindow.removeMenuItem(name);
+            dbWindow.removeMenuItem(item);
 
             cout << "Directing to Table View...\n";
             managerInterface();
             break;
         case 3:
-            cout << "Edit Price\n";
+            cout << "Directing to Edit Price...\n";
+
+            cout << "What is the name of the item you want to edit?" << endl;
+            cin >> item;
+
+            dbWindow.editMenu(item);
+
+            cout << "Directing to Table View...\n";
+            managerInterface();
             break;
         case 4:
             cout << "Directing back to Table View...\n";
@@ -856,7 +943,8 @@ public:
             cout << "3";
             break;
         case 4:
-            cout << "4";
+            cout << "Directing to Start New Order...\n";
+
             break;
         case 5:
             cout << "5";
