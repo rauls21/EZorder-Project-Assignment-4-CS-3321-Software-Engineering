@@ -143,6 +143,57 @@ public:
         }
     }
 
+    void AddToMenuCSV() {
+        vector<string> menuItems;
+        vector<double> prices;
+        string item;
+        double price;
+        char choice;
+
+       /* do {
+            cout << "Enter Menu Item: ";
+            cin.ignore();
+            getline(cin, item);
+
+            cout << "Enter price: ";
+            cin >> price;
+
+            menuItems.push_back(item);
+            prices.push_back(price);
+
+            cout << "Do you want to add another item? (y/n): ";
+            cin >> choice;
+        } while (choice == 'y' || choice == 'Y');
+
+        if (menuItems.size() != prices.size()) {
+            cerr << "Error: Menu items and prices must have the same number of entries." << endl;
+            return;
+        }*/
+
+        ofstream menuFile("menu.csv", ios::app);
+
+        if (menuFile.is_open()) {
+            ifstream inFile("menu.csv", ios::ate);
+            if (inFile.tellg() == 0) {
+                menuFile << "Menu Item, Price\n";
+            }
+            inFile.close();
+        }
+
+        if (!menuFile.is_open()) {
+            cerr << "Error: Could not open file." << endl;
+            return;
+        }
+
+        for (size_t i = 0; i < menuItems.size(); i++) {
+            menuFile << menuItems[i] << "," << prices[i] << "\n";
+        }
+
+        menuFile.close();
+        cout << "Menu Updated" << endl;
+        return;
+    }
+
     void addEmployeeToCSV(const string& name, const string& position, int pin, double wage) {
         const string filename = "employees.csv";
         ofstream outputFile("employees.csv", ios::app);
@@ -172,8 +223,6 @@ public:
         // Close the file
         outputFile.close();
     }
-
-
 
     // Add employee (admin only)
     void addEmployee(string name, string position, int pin, double wage) {
@@ -259,13 +308,93 @@ public:
     }
 
     // Change position (admin only)
-    void changePosition(string name, string newPosition) {
-        if (employees.find(name) != employees.end()) {
-            employees[name].changePosition(newPosition);
-            cout << "Position changed for " << name << " to " << newPosition << endl;
+    bool editEmployee(string name, int pin) {
+        ifstream inputFile("employees.csv");
+        ofstream tempFile("temp.csv");
+        string line;
+
+        // Ensure the input file is open
+        if (!inputFile.is_open()) {
+            cerr << "Error: Could not open the file for reading." << endl;
+            return false;
+        }
+
+        // Ensure the temporary file is open
+        if (!tempFile.is_open()) {
+            cerr << "Error: Could not open the temporary file for writing." << endl;
+            return false;
+        }
+
+        bool found = false;
+        string newPosition;
+        double newWage;
+
+        // Read each line from the original file
+        while (getline(inputFile, line)) {
+            stringstream ss(line);
+            string editName, position, pinStr, wageStr;
+
+            // Extract values from the CSV line
+            getline(ss, editName, ',');
+            getline(ss, position, ',');
+            getline(ss, pinStr, ',');
+            getline(ss, wageStr, ',');
+
+            // If the name and pin match, prompt for new values
+            if (editName == name && stoi(pinStr) == pin) {
+                found = true;
+
+                cout << "1. Change Position\n";
+                cout << "2. Change Wage\n";
+                cout << "3. Back\n";
+                int editNav;
+                cin >> editNav;
+
+                switch (editNav) {
+                case 1:
+                    // Get new position
+                    cout << "Enter new position for " << name << ": ";
+                    cin >> newPosition;
+                    tempFile << editName << "," << newPosition << "," << pinStr << "," << wageStr << endl;
+                    break;
+                case 2:
+                    // Get new wage
+                    cout << "Enter new wage for " << name << ": ";
+                    cin >> newWage;
+                    tempFile << editName << "," << position << "," << pinStr << "," << newWage << endl;
+                    cin.ignore();  // To ignore the newline left in the input buffer
+                    break;
+                case 3:
+                    cout << "Returning to Edit Employee...\n";
+                    tempFile << line << endl;  // Write the original line if no valid choice is made
+                    break;
+                default:
+                    cout << "Invalid choice. No changes made." << endl;
+                    tempFile << line << endl;  // Write the original line if no valid choice is made
+                    break;
+                }
+            }
+            else {
+                // Write the original data to the temp file
+                tempFile << line << endl;
+            }
+        }
+
+        // Close the files
+        inputFile.close();
+        tempFile.close();
+
+        // If the employee was found and updated, replace the original file with the temp file
+        if (found) {
+            remove("employees.csv");         // Delete the original file
+            rename("temp.csv", "employees.csv");  // Rename temp file to original file
+            cout << "Employee " << name << " updated successfully." << endl;
+            return true;
         }
         else {
-            cout << "Employee not found." << endl;
+            remove("temp.csv");  // No employee found, so remove temp file
+            cout << "Employee " << name << " not found or pin did not match." << endl;
+            return false;
         }
     }
 
@@ -322,57 +451,6 @@ public:
             cout << "Invalid table number.\n";
         }
     }
-    
-    void AddToMenuCSV() {
-        vector<string> menuItems;
-        vector<double> prices;
-        string item;
-        double price;
-        char choice;
-
-            do {
-                cout << "Enter Menu Item: ";
-                cin.ignore();
-                getline(cin, item);
-
-                cout << "Enter price: ";
-                cin >> price;
-
-                menuItems.push_back(item);
-                prices.push_back(price);
-
-                cout << "Do you want to add another item? (y/n): ";
-                cin >> choice;
-            } while (choice == 'y' || choice == 'Y');
-
-            if (menuItems.size() != prices.size()) {
-                cerr << "Error: Menu items and prices must have the same number of entries." << endl;
-                return;
-            }
-
-            ofstream menuFile("menu.csv", ios::app);
-
-            if (menuFile.is_open()) {
-                ifstream inFile("menu.csv", ios::ate);
-                if (inFile.tellg() == 0) {
-                    menuFile << "Menu Item, Price\n";
-                }
-                inFile.close();
-            }
-
-            if (!menuFile.is_open()) {
-                cerr << "Error: Could not open file." << endl;
-                return;
-            }
-
-            for (size_t i = 0; i < menuItems.size(); i++) {
-                menuFile << menuItems[i] << "," << prices[i] << "\n";
-            }
-
-            menuFile.close();
-            cout << "Menu Updated" << endl;
-            return;
-        }
 };
 
 // Login Window class
@@ -589,6 +667,17 @@ public:
         switch (editEmpNav) {
         case 1:
             cout << "Directing to Edit Employee Information...\n";
+
+            cout << "What is the name if the employee you want to edit?" << endl;
+            cin >> name;
+
+            cout << "Enter the pin number of that employee: " << endl;
+            cin >> pin;
+
+            dbWindow.editEmployee(name, pin);
+
+            cout << "Directing to Table View...\n";
+            managerInterface();
             break;
         case 2:
             cout << "Directing to Add Employee...\n";
@@ -606,7 +695,7 @@ public:
             cin >> wage;
 
             dbWindow.addEmployee(name, position, pin, wage);
-
+            
             cout << "Directing to Table View...\n";
             managerInterface();
             break;
@@ -635,6 +724,43 @@ public:
         }
     }
 
+    void editMenuInterface() {
+        int editMenuNav;
+        string item;
+        double prices;
+
+
+        cout << "1. Add New Item\n";
+        cout << "2. Remove Item\n";
+        cout << "3. Edit Price\n";
+
+        switch (editMenuNav) {
+        case 1:
+            cout << "Directign to Add New Item...\n";
+            
+            do {
+                cout << "Enter Menu Item: ";
+                cin.ignore();
+                getline(cin, item);
+
+                cout << "Enter price: ";
+                cin >> price;
+
+                menuItems.push_back(item);
+                prices.push_back(price);
+
+                cout << "Do you want to add another item? (y/n): ";
+                cin >> choice;
+            } while (choice == 'y' || choice == 'Y');
+
+            if (menuItems.size() != prices.size()) {
+                cerr << "Error: Menu items and prices must have the same number of entries." << endl;
+                return;
+            }
+
+        }
+    }
+
     void managerInterface() {
         int navigate;
         cout << "1. Edit Menu\n";
@@ -650,10 +776,7 @@ public:
         switch (navigate) {
         case 1:            //Table
             cout << "Directing to Edit Menu...\n";
-            dbWindow.AddToMenuCSV();
-
-            cout << "Directing back to Table View...\n";
-            managerInterface();
+            editMenuInterface();
             break;
         case 2://Orders
             cout << "Directing to Edit Employee...\n";
@@ -675,7 +798,7 @@ public:
             cout << "7";
             break;
         case 8:
-            cout << "8";
+            cout << "Logging out...\n";
             return;
             break;
         default:
