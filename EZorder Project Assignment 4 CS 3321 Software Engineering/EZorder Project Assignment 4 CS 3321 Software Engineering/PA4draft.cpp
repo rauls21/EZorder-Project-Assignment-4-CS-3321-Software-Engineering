@@ -191,12 +191,60 @@ public:
     }
 
     // Remove employee (admin only)
-    void removeEmployee(string name) {
-        if (employees.erase(name)) {
-            cout << "Employee removed: " << name << endl;
+    bool removeEmployee(string name, int pin) {
+        ifstream inputFile("employees.csv");
+        ofstream tempFile("temp.csv");
+        string line;
+
+        // Ensure the input file is open
+        if (!inputFile.is_open()) {
+            cerr << "Error: Could not open the file for reading." << endl;
+            return false;
+        }
+
+        // Ensure the temporary file is open
+        if (!tempFile.is_open()) {
+            cerr << "Error: Could not open the temporary file for writing." << endl;
+            return false;
+        }
+
+        bool found = false;
+
+        // Read each line from the original file
+        while (getline(inputFile, line)) {
+            stringstream ss(line);
+            string empName, position, pinStr, wageStr;
+
+            // Extract values from the CSV line
+            getline(ss, empName, ',');
+            getline(ss, position, ',');
+            getline(ss, pinStr, ',');
+            getline(ss, wageStr, ',');
+
+            // If the name does not match the employee to be removed, write the line to the temp file
+            if (empName != name) {
+                tempFile << line << endl;  // Write the original line to the temp file
+            }
+            else {
+                found = true;  // Mark that we found the employee
+            }
+        }
+
+        // Close the files
+        inputFile.close();
+        tempFile.close();
+
+        // If the employee was found and removed, replace the original file with the temp file
+        if (found) {
+            remove("employees.csv");         // Delete the original file
+            rename("temp.csv", "employees.csv");  // Rename temp file to original file
+            cout << "Employee " << name << " removed successfully." << endl;
+            return true;
         }
         else {
-            cout << "Employee not found." << endl;
+            remove("temp.csv");  // No employee found, so remove temp file
+            cout << "Employee " << name << " not found." << endl;
+            return false;
         }
     }
 
@@ -371,7 +419,6 @@ public:
         return false; // Pin not found
     }
 
-
     void clockInOutDisplay() {
         int navigate;
         cout << "1. Clock in\n";
@@ -380,12 +427,15 @@ public:
         if (navigate == 1) {
             if (user.position == "Manager") {
                 cout << "Clocking manager in...\n";
-                userInterface();
+                managerInterface();
             }
-
+            else if (user.position == "Server") {
+                cout << "Clocking Server in...\n";
+                serverInterface();
+            }
             else {
                 cout << "Clocking in...\n";
-                userInterface();
+                return;
             }
         }
         else {
@@ -394,15 +444,157 @@ public:
         return;
     }
 
-    void userInterface() {
+    void toGoOrder() {
+        int navigateToGo;
+        cout << "List of To Go Orders: ";
+    }
+
+    void orderView() {
+        int navigateOrderView;
+        cout << "1. Modify Order\n";
+        cout << "2. Back\n";
+        cin >> navigateOrderView;
+
+        switch (navigateOrderView) {
+        case 1:
+            cout << "Modifying Order";
+            break;
+        case 2:
+            cout << "Directing back to Table View...\n";
+            serverInterface();
+            break;
+        default:
+            cout << "Invalid Input\n";
+            orderView();
+            break;
+        }
+    }
+
+    void newOrder() {
+        int navigateNewOrder;
+        cout << "1. New To-Go Order\n";
+        cout << "2. New Table Order\n";
+        cout << "3. Back\n";
+        cin >> navigateNewOrder;
+
+        switch (navigateNewOrder) {
+        case 1:
+            cout << "To-Go Order";
+            break;
+        case 2:
+            cout << "Table Order";
+            break;
+        case 3:
+            cout << "Directing back to Table View...\n";
+            serverInterface();
+            break;
+        default:
+            cout << "Invalid Input\n";
+            newOrder();
+            break;
+        }
+    }
+
+    void serverInterface() {
+        //Automatically display table view
+        int navigateUserInterface;
+        cout << "1. New Order\n";
+        cout << "2. View Current Order\n";
+        cout << "3. View To-Go Orders\n";
+        cin >> navigateUserInterface;
+
+        switch (navigateUserInterface) {
+        case 1:
+            cout << "Directing to New Order...\n";
+            newOrder();
+            break;
+        case 2:
+            cout << "Directing to Order View...\n";
+            orderView();
+            break;
+        case 3:
+            cout << "Directing to To-Go Orders...\n";
+            toGoOrder();
+            break;
+        default:
+            cout << "Invalid Input\n";
+            serverInterface();
+            break;
+        }
+    }
+
+    void editEmpInterface() {
+        int editEmpNav;
+        string name;
+        string position;
+        int pin;
+        double wage;
+
+        cout << "1. Edit Employee Information\n";
+        cout << "2. Add Employee\n";
+        cout << "3. Remove Employee\n";
+        cout << "4. Back\n";
+        cin >> editEmpNav;
+
+        switch (editEmpNav) {
+        case 1:
+            cout << "Directing to Edit Employee Information...\n";
+            break;
+        case 2:
+            cout << "Directing to Add Employee...\n";
+
+            cout << "What is the name of the employee?" << endl;
+            cin >> name;
+
+            cout << "What will be the position?" << endl;
+            cin >> position;
+
+            cout << "What is the employees pin number?" << endl;
+            cin >> pin;
+
+            cout << "What is their starting wage?" << endl;
+            cin >> wage;
+
+            dbWindow.addEmployee(name, position, pin, wage);
+            
+            cout << "Directing to Table View...\n";
+            managerInterface();
+            break;
+        case 3:
+            cout << "Directing to Remove Employee...\n";
+
+            cout << "Enter the name of the employee to remove: " << endl;
+            cin >> name;
+
+            cout << "Enter the pin number of that employee: " << endl;
+            cin >> pin;
+
+            dbWindow.removeEmployee(name, pin);
+
+            cout << "Directing to Table View...\n";
+            managerInterface();
+            break;
+        case 4:
+            cout << "Directing to Table View...\n";
+            managerInterface();
+            break;
+        default:
+            cout << "Invalid Input\n";
+            editEmpInterface();
+            break;
+        }
+    }
+
+    void managerInterface() {
         int navigate;
-        cout << "1. Table\n";
-        cout << "2. Orders\n";
-        cout << "3. Transfer\n";
-        cout << "4. Calculate\n";
-        cout << "5. Close Order\n";
-        cout << "6. Admin Edit\n";
-        cout << "7. Logout\n";
+        cout << "1. Edit Menu\n";
+        cout << "2. Edit Employee\n";
+        cout << "3. View Current Orders\n";
+        cout << "4. Start New Order\n";
+        cout << "5. View To-Go Orders\n";
+        cout << "6. Transfer Table\n";
+        cout << "7. Calculate Wage\n";
+        cout << "8. Logout\n";
         cin >> navigate;
 
         switch (navigate) {
@@ -410,7 +602,8 @@ public:
             cout << "1";
             break;
         case 2://Orders
-            cout << "2";
+            cout << "Directing to Edit Employee...\n";
+            editEmpInterface();
             break;
         case 3://Transfer
             cout << "3";
@@ -426,6 +619,14 @@ public:
             break;
         case 7:
             cout << "7";
+            break;
+        case 8:
+            cout << "8";
+            return;
+            break;
+        default:
+            cout << "Invalid Input\n";
+            managerInterface();
             break;
         }
     }
