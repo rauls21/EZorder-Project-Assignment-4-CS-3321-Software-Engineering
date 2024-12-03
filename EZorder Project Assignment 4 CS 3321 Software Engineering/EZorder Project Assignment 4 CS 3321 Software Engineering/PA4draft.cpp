@@ -100,11 +100,10 @@ public:
         cout << "Total: $" << totalCost << endl;
     }
 
-    void createOrderCSV(int orderNum) {
+    void createOrderCSV(int orderNum, const string& orderType) {
         const string menuFile = "menu.csv";
-
-
         map<string, double> menu = loadMenu(menuFile);
+
         if (menu.empty()) {
             cerr << "Error: Menu is empty or could not be loaded." << endl;
             return;
@@ -114,7 +113,7 @@ public:
         double price = 0.0;
 
         //Create file name with orderNum
-        string orderFile = "Order_" + to_string(orderNum) + ".csv";
+        string orderFile = (orderType == "to-go" ? "ToGo_" : "DineIn_") + to_string(orderNum) + ".csv";
 
         //Create & Open To-Go File
         ofstream csvFile(orderFile, ios::app);
@@ -868,19 +867,20 @@ public:
     void newOrder() {
         int navigateNewOrder;
         int orderNum;
-        cout << "1. New To-Go Order\n";
-        cout << "2. New Table Order\n";
+        cout << "1. Create To-Go Order\n";
+        cout << "2. Create Dine-In Order\n";
         cout << "3. Back\n";
         cin >> navigateNewOrder;
 
         switch (navigateNewOrder) {
         case 1:
-            cout << "Enter Order Number: ";
+
+            cout << "Enter Order Number for To-Go Order: ";
             cin >> orderNum;
 
             dbWindow.displayMenu();
 
-            createOrder.createOrderCSV(orderNum);
+            createOrder.createOrderCSV(orderNum, "to-go");
 
             if (user.position == "Manager") {
                 cout << "Directing to Table View...\n";
@@ -898,7 +898,7 @@ public:
 
             dbWindow.displayMenu();
 
-            createOrder.createOrderCSV(orderNum);
+            createOrder.createOrderCSV(orderNum, "dine_in");
             
             if (user.position == "Manager") {
                 cout << "Directing to Table View...\n";
@@ -925,7 +925,7 @@ public:
         //Automatically display table view
         int navigateUserInterface;
         cout << "1. New Order\n";
-        cout << "2. View Current Order\n";
+        cout << "2. View Current Orders\n";
         cout << "3. View To-Go Orders\n";
         cout << "4. Logout\n";
         cin >> navigateUserInterface;
