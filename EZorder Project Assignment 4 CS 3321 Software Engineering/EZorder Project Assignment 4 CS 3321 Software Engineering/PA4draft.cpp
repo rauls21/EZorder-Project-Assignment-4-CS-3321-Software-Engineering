@@ -299,8 +299,13 @@ public:
         const int HoursPerWeek = 40;
         for (const auto& emp : empVect) {
             double yearlyWage = emp.hourlyWage * HoursPerWeek * WeeksPerYear;
-            cout << "Name: " << emp.name << ", Position: " << emp.position
-                << ", Yearly Wage: $" << yearlyWage << endl;
+            cout << "Name: " << emp.name << "\t Position: " << emp.position;
+            if (emp.position == "Host") {
+                cout << setw(24) << "Yearly Wage: $" << yearlyWage << endl;
+            }
+            else {
+                cout << "\t Yearly Wage: $" << yearlyWage << endl;
+            }
         }
     }
 
@@ -1012,9 +1017,6 @@ public:
         map<string, double> menu = createOrder.loadMenu(menuFile);
         string menuItem;
 
-        cout << "Enter the menu item you want to remove: ";
-        getline(cin, menuItem);
-
         // Open the order file for reading and a temporary file for writing
         ifstream inputFile(fileOrder);
         ofstream tempFile("temp.csv");
@@ -1032,17 +1034,50 @@ public:
             return false;
         }
 
-        bool found = false;
+        cout << "Current items in the order: " << endl;
+        cout << "-----------------------------" << endl;
 
-        // Read each line from the original file
+        getline(inputFile, line); // Skip the header
+
+        // Read and display each line (item) from the CSV file
+        vector<string> orderItems;
         while (getline(inputFile, line)) {
             stringstream ss(line);
             string item;
             double price;
 
-            // Extract the item name and price from the CSV line
+            // Extract the item and price from the CSV line
             getline(ss, item, ',');
             ss >> price;
+
+            // Display the item and its price
+            orderItems.push_back(item);
+            cout << item << " - $" << price << endl;
+        }
+
+        cout << "-----------------------------" << endl;
+
+        cout << "Enter the menu item you want to remove: ";
+        getline(cin, menuItem);
+
+        bool found = false;
+
+        // Reset the file pointer back to the beginning
+        inputFile.clear(); // Clear any error flags
+        inputFile.seekg(0, ios::beg); // Move to the beginning of the file
+
+        // Skip the header line again
+        getline(inputFile, line);
+
+        // Read each line from the original file
+        while (getline(inputFile, line)) {
+            stringstream ss(line);
+            string item;
+            string price;
+
+            // Extract the item name and price from the CSV line
+            getline(ss, item, ',');
+            getline(ss, price, ',');
 
             // If the menu item does not match the one to be removed, write it to the temp file
             if (item != menuItem) {
