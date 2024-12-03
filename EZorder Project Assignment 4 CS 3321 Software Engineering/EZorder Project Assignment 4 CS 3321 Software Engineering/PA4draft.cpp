@@ -1105,7 +1105,7 @@ public:
             return false;
         }
     }
-    
+
     void modifyOrderM() {
         int modOrderMNav;
         cout << "Displaying Orders...\n";
@@ -1146,6 +1146,36 @@ public:
         }
     }
 
+    void modifyOrderS() {
+        int modOrderSNav;
+        cout << "Displaying Orders...\n";
+        displayOrder();
+
+        cout << "What would you like to do?\n";
+
+        cout << "1. Add Item\n";
+        cout << "2. Back\n";
+        cin >> modOrderSNav;
+
+        switch (modOrderSNav) {
+        case 1:
+            cout << "Directing to Add Item\n";
+            addItemToOrderCSV();
+
+            cout << "Returning back to Table View...\n";
+            serverInterface();
+            break;
+        case 2:
+            cout << "Returning back to View Current Orders...\n";
+            orderView();
+            break;
+        default:
+            cout << "Invalid Input\n";
+            modifyOrderS();
+            break;
+        }
+    }
+
     void orderView() {
         int navigateOrderView;
         cout << "1. Modify Order\n";
@@ -1155,11 +1185,18 @@ public:
 
         switch (navigateOrderView) {
         case 1:
-            cout << "Directing to Modify Order\n";
-            modifyOrderM();
+            if (user.position == "Manager") {
+                cout << "Directing to Modify Order\n";
+                modifyOrderM();
+            }
+            else {
+                cout << "Directing to Modify Order\n";
+                modifyOrderS();
+            }
             break;
         case 2:
             cout << "Directing to Close Order...\n";
+            break;
         case 3:
             cout << "Directing back to Table View...\n";
             if (user.position == "Manager") {
@@ -1241,8 +1278,7 @@ public:
         int navigateUserInterface;
         cout << "1. New Order\n";
         cout << "2. View Current Orders\n";
-        cout << "3. View To-Go Orders\n";
-        cout << "4. Logout\n";
+        cout << "3. Logout\n";
         cin >> navigateUserInterface;
 
         switch (navigateUserInterface) {
@@ -1255,10 +1291,6 @@ public:
             orderView();
             break;
         case 3:
-            cout << "Directing to To-Go Orders...\n";
-            toGoOrder();
-            break;
-        case 4:
             cout << "Logging out...\n";
             return;
             break;
@@ -1488,9 +1520,6 @@ public:
 int main() {
     DatabaseWindow dbWindow;
     LoginWindow loginWindow(dbWindow);
-    //PaymentWindow paymentWindow;
-
-    ////////////////////////////////////////////////////////////////////// Start of Login
     int userPin;
 
     // Prompt user to enter a 4-digit PIN
@@ -1508,32 +1537,9 @@ int main() {
         cout << "Invalid input" << endl;
         return 0;
     }
-    ////////////////////////////////////////////////////////////////////// End of Login
-
-
-    // Simulating system operations
-    //dbWindow.addEmployee("John", "Server", 1234, 15.50);
-    //dbWindow.addEmployee("Alice", "Chef", 5678, 20.00);
-
-    /*if (loginWindow.login(1234)) {
-        dbWindow.occupyTable(1, "John", 4);
-        dbWindow.displayFloorLayout();
-
-        // Process an order
-        Order order;
-        order.addItem("Appetizer: Salad", 5.99);
-        order.addItem("Entree: Steak", 20.99);
-        order.displayOrder();
-
-        // Payment
-        paymentWindow.displayCheck(order);
-        paymentWindow.addTips(5.00);
-        paymentWindow.printCheck();
-    }*/
 
     dbWindow.displayEmployees();
-    //dbWindow.displaySalesReport();
-    //dbWindow.calculateWages();
+
 
     return 0;
 }
