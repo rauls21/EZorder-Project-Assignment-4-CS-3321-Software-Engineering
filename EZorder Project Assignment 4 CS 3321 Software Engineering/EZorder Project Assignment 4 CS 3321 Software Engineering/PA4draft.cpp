@@ -37,6 +37,15 @@ public:
         position = privilege;
     }
 
+    void usersName(string usersName) {
+        name = usersName;
+    }
+
+    void usersPin(string pinStr) {
+        int pinNum = stoi(pinStr);
+        pin = pinNum;
+    }
+
     void display() const {
         cout << "Name: " << name << ", Position: " << position
             << ", Hours Worked: " << hoursWorked << ", Wage: $" << wage
@@ -79,6 +88,13 @@ public:
     }
 };
 
+struct Emp {
+    string name;
+    string position;
+    int pin;
+    double hourlyWage;
+};
+
 // Order management
 class Order {
 public:
@@ -100,7 +116,7 @@ public:
         cout << "Total: $" << totalCost << endl;
     }
 
-    void createOrderCSV(int orderNum, const string& orderType) {
+    void createOrderCSV(int orderNum, const string& orderType, const string& userName, const int& userPin) {
         const string menuFile = "menu.csv";
         map<string, double> menu = loadMenu(menuFile);
 
@@ -126,38 +142,48 @@ public:
                 csvFile << "Menu Item, Price\n";
             }
             inFile.close();
-        }
 
-        //If file did not open
-        if (!csvFile.is_open()) {
-            cerr << "Error opening file!";
-        }
+            cin.ignore();
+            while (true) {
+                cout << "Enter Menu Item (type 'done' to exit): ";
+                getline(cin, menuItem);
 
-        cin.ignore();
-        while (true) {
-            cout << "Enter Menu Item (type 'done' to exit): ";
-            getline(cin, menuItem);
+                if (menuItem == "done") {
+                    break;
+                }
 
-            if (menuItem == "done") {
-                break;
+                //Find the price of the menu item
+                auto it = menu.find(menuItem);
+                if (it != menu.end()) {
+                    price = it->second;
+
+                    //Append the data to the file
+                    csvFile << menuItem << "," << price << endl;
+                    cout << menuItem << " addded to order.\n";
+                }
+                else {
+                    cerr << "Error: Menu item not found." << endl;
+                }
             }
 
-            //Find the price of the menu item
-            auto it = menu.find(menuItem);
-            if (it != menu.end()) {
-                price = it->second;
-                
-                //Append the data to the file
-                csvFile << menuItem << "," << price << endl;
-                cout << menuItem << " addded to order.\n";
-            }
-            else {
-                cerr << "Error: Menu item not found." << endl;
-            }
+            //Close File
+            csvFile.close();
+        }
+        else {
+            cerr << "Error opening order file." << endl;
         }
 
-        //Close File
-        csvFile.close();
+        //Append new order to the "existingOrders.csv" file
+        ofstream existingOrdersFile("existingorder.csv", ios::app);
+
+        if (existingOrdersFile.is_open()) {
+            //Append server's information and the order file they're assigned to
+            existingOrdersFile << userName << "," << to_string(userPin) << "," << orderFile << endl;
+            cout << "Order added to existingorders.csv\n";
+        }
+        else {
+            cerr << "Error opening 'existingorders.csv'" << endl;
+        }
 
     }
 
@@ -262,10 +288,50 @@ public:
                 cout << left << setw(15) << menuItem << setw(10) << price << endl;
             }
         }
-        
+
         menu.close();
         cout << endl;
 
+    }
+
+    void calculateWages(const vector<Emp>& empVect) {
+        const int WeeksPerYear = 52;
+        const int HoursPerWeek = 40;
+        for (const auto& emp : empVect) {
+            double yearlyWage = emp.hourlyWage * HoursPerWeek * WeeksPerYear;
+            cout << "Name: " << emp.name << ", Position: " << emp.position
+                << ", Yearly Wage: $" << yearlyWage << endl;
+        }
+    }
+
+    vector<Emp>readEmployeesFromFile() {
+        const string filename = "employees.csv";
+        vector<Emp>empVect;
+        ifstream file(filename);
+        if (!file.is_open()) {
+            cerr << "Failed to open the file." << endl;
+            return empVect;
+        }
+
+        string line;
+        getline(file, line);  // Skip the header
+        while (getline(file, line)) {
+            stringstream stream(line);
+            Emp empTemp;
+            string wageStr, pinStr;
+
+            getline(stream, empTemp.name, ',');
+            getline(stream, empTemp.position, ',');
+            getline(stream, pinStr, ',');
+            getline(stream, wageStr, ',');
+
+            empTemp.pin = stoi(pinStr);
+            empTemp.hourlyWage = stod(wageStr);
+
+            empVect.push_back(empTemp);
+        }
+        file.close();
+        return empVect;
     }
 
     void appendToMenuCSV(const string& filename, const vector<string>& menuItems, const vector<double>& prices) {
@@ -782,6 +848,8 @@ public:
             getline(ss, wageStr, ',');
 
             user.positionPrivilege(position);
+            user.usersName(name);
+            user.usersPin(pinStr);
             if (stoi(pinStr) == pin) {
                 cout << "Access granted for employee:" << name << endl;
                 return true;
@@ -840,22 +908,234 @@ public:
             toGoOrder();
             break;
         }
-       
+
+    }
+
+    // Function to add a menu item and its price to an order CSV file
+    void addItemToOrderCSV() {
+        cout << "Select order you would like to add item(s) (Type Order's Full Name!): ";
+        string fileOrder;
+        cin >> fileOrder;
+        dbWindow.displayMenu();
+        cin.ignore(); // This clears the leftover newline character from the input buffer.
+
+        const string menuFile = "menu.csv";
+        map<string, double> menu = createOrder.loadMenu(menuFile);
+        string menuItem;
+        double price = 0.0;
+
+        // Open the CSV file in append mode
+        ofstream csvFile(fileOrder, ios::app);
+
+        // Check if the file is open
+        if (!csvFile.is_open()) {
+            cerr << "Error: Could not open the file!" << endl;
+            return;
+        }
+
+        while (true) {
+            cout << "Enter Menu Item (type 'done' to exit): ";
+            getline(cin, menuItem);
+
+            if (menuItem == "done") {
+                break;
+            }
+
+            // Find the price of the menu item in the loaded menu
+            auto it = menu.find(menuItem);
+            if (it != menu.end()) {
+                price = it->second;
+
+                // Append the data to the file
+                csvFile << menuItem << "," << price << endl;
+                cout << menuItem << " added to order." << endl;
+            }
+            else {
+                cerr << "Error: Menu item not found." << endl;
+            }
+        }
+
+        // Close the file
+        csvFile.close();
+    }
+
+    void displayOrder() {
+        int userPin;
+        userPin = user.pin;
+        // Open the CSV file
+        ifstream file("existingorder.csv");
+
+        // Ensure file is open
+        if (!file.is_open()) {
+            cerr << "Error: Could not open the file." << endl;
+            return;
+        }
+
+        string line, name, pinStr, orderType;
+
+        // Flag to check if pin was found
+        bool pinFound = false;
+
+        // Read the file line by line
+        while (getline(file, line)) {
+            stringstream ss(line);
+
+            // Extract the Name, Pin, and Order/TgOrder from the row
+            getline(ss, name, ',');
+            getline(ss, pinStr, ',');
+            getline(ss, orderType, ',');
+
+            // Check if the current pin matches the search pin
+            if (stoi(pinStr) == userPin) {
+                cout << "Employee Name: " << name << endl;
+                cout << "Order: " << orderType << endl;
+                cout << "--------------------------" << endl;
+                pinFound = true;
+            }
+        }
+
+        if (!pinFound) {
+            cout << "Error: No employee with PIN " << userPin << " found." << endl;
+        }
+
+        // Close the file
+        file.close();
+    }
+
+    bool removeItemFromOrderCSV() {
+        cout << "Select order you would like to modify (Type Order's Full Name!): ";
+        string fileOrder;
+        cin >> fileOrder;
+        cin.ignore(); // Clears the leftover newline character from the input buffer.
+
+        const string menuFile = "menu.csv";
+        map<string, double> menu = createOrder.loadMenu(menuFile);
+        string menuItem;
+
+        cout << "Enter the menu item you want to remove: ";
+        getline(cin, menuItem);
+
+        // Open the order file for reading and a temporary file for writing
+        ifstream inputFile(fileOrder);
+        ofstream tempFile("temp.csv");
+        string line;
+
+        // Ensure the order file is open
+        if (!inputFile.is_open()) {
+            cerr << "Error: Could not open the order file for reading." << endl;
+            return false;
+        }
+
+        // Ensure the temporary file is open
+        if (!tempFile.is_open()) {
+            cerr << "Error: Could not open the temporary file for writing." << endl;
+            return false;
+        }
+
+        bool found = false;
+
+        // Read each line from the original file
+        while (getline(inputFile, line)) {
+            stringstream ss(line);
+            string item;
+            double price;
+
+            // Extract the item name and price from the CSV line
+            getline(ss, item, ',');
+            ss >> price;
+
+            // If the menu item does not match the one to be removed, write it to the temp file
+            if (item != menuItem) {
+                tempFile << item << "," << price << endl;  // Write the original line to the temp file
+            }
+            else {
+                found = true;  // Mark that we found the item
+            }
+        }
+
+        // Close the files
+        inputFile.close();
+        tempFile.close();
+
+        // If the item was found and removed, replace the original file with the temp file
+        if (found) {
+            remove(fileOrder.c_str());         // Delete the original file
+            rename("temp.csv", fileOrder.c_str());  // Rename temp file to original file
+            cout << "Item " << menuItem << " removed successfully." << endl;
+            return true;
+        }
+        else {
+            remove("temp.csv");  // No item found, so remove temp file
+            cout << "Item " << menuItem << " not found." << endl;
+            return false;
+        }
+    }
+    
+    void modifyOrderM() {
+        int modOrderMNav;
+        cout << "Displaying Orders...\n";
+        displayOrder();
+
+        cout << "What would you like to do?\n";
+
+        cout << "1. Add Item\n";
+        cout << "2. Remove Item\n";
+        cout << "3. Change Item\n";
+        cout << "4. Back\n";
+        cin >> modOrderMNav;
+
+        switch (modOrderMNav) {
+        case 1:
+            cout << "Directing to Add Item\n";
+            addItemToOrderCSV();
+
+            cout << "Returning back to Table View...\n";
+            managerInterface();
+            break;
+        case 2:
+            cout << "Directing to Remove Item\n";
+            removeItemFromOrderCSV();
+
+            cout << "Returning back to Table View...\n";
+            managerInterface();
+            break;
+        case 3:
+            cout << "Directing to Change Item\n";
+        case 4:
+            cout << "Returning back to View Current Orders...\n";
+            orderView();
+        default:
+            cout << "Invalid Input\n";
+            modifyOrderM();
+            break;
+        }
     }
 
     void orderView() {
         int navigateOrderView;
         cout << "1. Modify Order\n";
-        cout << "2. Back\n";
+        cout << "2. Close Order\n";
+        cout << "3. Back\n";
         cin >> navigateOrderView;
 
         switch (navigateOrderView) {
         case 1:
-            cout << "Modifying Order";
+            cout << "Directing to Modify Order\n";
+            modifyOrderM();
             break;
         case 2:
+            cout << "Directing to Close Order...\n";
+        case 3:
             cout << "Directing back to Table View...\n";
-            serverInterface();
+            if (user.position == "Manager") {
+                cout << "Directing to Table View...\n";
+                managerInterface();
+            }
+
+            else {
+                cout << "Directing to table View...\n";
+                serverInterface();
+            }
             break;
         default:
             cout << "Invalid Input\n";
@@ -880,7 +1160,7 @@ public:
 
             dbWindow.displayMenu();
 
-            createOrder.createOrderCSV(orderNum, "to-go");
+            createOrder.createOrderCSV(orderNum, "to-go", user.name, user.pin);
 
             if (user.position == "Manager") {
                 cout << "Directing to Table View...\n";
@@ -898,8 +1178,8 @@ public:
 
             dbWindow.displayMenu();
 
-            createOrder.createOrderCSV(orderNum, "dine_in");
-            
+            createOrder.createOrderCSV(orderNum, "dine_in", user.name, user.pin);
+
             if (user.position == "Manager") {
                 cout << "Directing to Table View...\n";
                 managerInterface();
@@ -1076,7 +1356,7 @@ public:
             cout << "Directing to Remove Item...\n";
 
             cout << "Current Menu:\n";
-            
+
             dbWindow.displayMenu();
 
             cout << "Enter the name of the menu item to remove: " << endl;
@@ -1117,18 +1397,20 @@ public:
 
     void managerInterface() {
         int navigate;
+
+        vector<Emp>employeeVect = dbWindow.readEmployeesFromFile();
+
         cout << "1. Edit Menu\n";
         cout << "2. Edit Employee\n";
-        cout << "3. View Current Orders\n";
+        cout << "3. View Current Order(s)\n";
         cout << "4. Start New Order\n";
-        cout << "5. View To-Go Orders\n";
-        cout << "6. Transfer Table\n";
-        cout << "7. Calculate Wage\n";
-        cout << "8. Logout\n";
+        cout << "5. Transfer Order(s)\n";
+        cout << "6. Calculate Wage\n";
+        cout << "7. Logout\n";
         cin >> navigate;
 
         switch (navigate) {
-        case 1:          
+        case 1:
             cout << "Directing to Edit Menu...\n";
             editMenuInterface();
             break;
@@ -1137,22 +1419,25 @@ public:
             editEmpInterface();
             break;
         case 3:
-            cout << "3";
+            cout << "Directing to Current Orders...\n";
+            orderView();
             break;
         case 4:
             cout << "Directing to Start New Order...\n";
-
+            newOrder();
             break;
         case 5:
             cout << "5";
+
             break;
         case 6:
-            cout << "6";
+            cout << "Directing to Calculate Wage(s)...\n";
+            dbWindow.calculateWages(employeeVect);
+
+            cout << "Returning back to Table View...\n";
+            managerInterface();
             break;
         case 7:
-            cout << "7";
-            break;
-        case 8:
             cout << "Logging out...\n";
             return;
             break;
