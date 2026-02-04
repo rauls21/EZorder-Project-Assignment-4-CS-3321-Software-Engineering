@@ -1,9 +1,9 @@
-**EZorder - Software Engineering Project**
+**EZorder - Software Engineering Project** 
 This repository contains a team based Point of Sale (POS) system developed over a 5 month semester for a
 Software Engineering course. The project was built by a team of five students and used GitHub for version
 control, collaboration, and project integration.
 
-**Project Overview**
+**Project Overview** 
 The POS system simulates a restaurant enviroment with role based access for employees, manager, hosts,
 and programmers. The system manages employee authentication, time tracking, table orders, menu items,
 and receipt generation.
